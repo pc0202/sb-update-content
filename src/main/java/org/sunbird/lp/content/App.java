@@ -22,7 +22,7 @@ public class App {
 	public static void main(String[] args) throws Exception {
 
 		// Connect to a neo4j instance
-		Neo4jDBClient dbclient = new Neo4jDBClient("bolt://localhost:7687", "neo4j", "neo4j");
+		Neo4jDBClient dbclient = new Neo4jDBClient("bolt://localhost:7687", "", "");
 
 		// fetches 100 content which does not have size defined
 		dbclient.run(100);
