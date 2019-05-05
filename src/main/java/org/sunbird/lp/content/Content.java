@@ -1,5 +1,12 @@
 package org.sunbird.lp.content;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Content {
 
 	private String contentId;
@@ -13,9 +20,24 @@ public class Content {
 	}
 
 	@Override
-	public String toString() {
-		return "ContentId: [" + contentId + ", arifactUrl=" + arifactUrl + ", downloadUrl=" + downloadUrl
-				+ ", contentSize=" + contentSize + "]";
+	public String toString() {		
+		try {
+			return new ObjectMapper().writeValueAsString(this);
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public JsonNode asJson() {
+		return  new ObjectMapper().convertValue(this, JsonNode.class);
 	}
 
 	public String getContentId() {
