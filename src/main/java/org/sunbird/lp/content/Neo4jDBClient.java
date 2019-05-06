@@ -69,9 +69,9 @@ public class Neo4jDBClient {
 				@Override
 				public StatementResult execute(Transaction tx) {
 					return tx.run(
-							"match (n) where n.contentType=\"Asset\" and not exists(n.size) return n.IL_UNIQUE_ID as contentId,"
-									+ " n.size as contentSize, n.downloadUrl as downloadUrl, n.artifactUrl as artifactUrl limit "
-									+ withLimit);
+							"match (n:domain) where n.contentType=\"Asset\" and not exists(n.size) return n.IL_UNIQUE_ID as contentId,"
+                                    + " n.size as contentSize, n.downloadUrl as downloadUrl, n.artifactUrl as artifactUrl limit "
+                                    + withLimit);
 				}
 			});
 		}
