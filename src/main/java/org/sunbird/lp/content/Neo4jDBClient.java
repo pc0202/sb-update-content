@@ -1,6 +1,5 @@
 package org.sunbird.lp.content;
 
-import org.neo4j.driver.internal.value.ValueAdapter;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
@@ -9,12 +8,10 @@ import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.TransactionWork;
-import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -26,8 +23,6 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import static org.neo4j.driver.v1.Values.parameters;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,12 +32,12 @@ import java.util.Map;
  */
 public class Neo4jDBClient {
 
+
+	private final Driver driver;
+	private StatementResult result;
 	/**
 	 * Holds mapping for N contentId and it's content
 	 */
-	private Map<String, Content> contentMap = new HashMap<String, Content>();
-	private final Driver driver;
-	private StatementResult result;
 	private ArrayNode contentArrayNode = JsonNodeFactory.instance.arrayNode();
 
 
@@ -129,7 +124,7 @@ public class Neo4jDBClient {
 					public String execute(Transaction tx) {
 											
 						StatementResult result = tx.run(query , Values.value(value));
-						return "";//result.single().get(0).asString();
+						return "";
 					}
 				});
 				System.out.println("content updated");
@@ -149,34 +144,36 @@ public class Neo4jDBClient {
 	 * 
 	 */
 	private void populateContents() throws JsonGenerationException, JsonMappingException, IOException {
-		while (result.hasNext()) {
-			Record record = result.next();
-			String cId = record.get("contentId").asString();
-			String dUrl = record.get("downloadUrl").asString();
-			String aUrl = record.get("artifactUrl").asString();
+		if(result != null) {
+			while (result.hasNext()) {
+				Record record = result.next();
+				String cId = record.get("contentId").asString();
+				String dUrl = record.get("downloadUrl").asString();
+				String aUrl = record.get("artifactUrl").asString();
 
-			Content content = new Content(cId, aUrl);
-			content.setDownloadUrl(dUrl);
-			contentMap.put(cId, content);
-			
-			String artifactUrl = !content.getArifactUrl().equals("null") ? content.getArifactUrl()
-					: content.getDownloadUrl();
-			// if artifactUrl present or downloadUrl is present, is use to get the size
-			try {
-				if (artifactUrl != null && !artifactUrl.isEmpty() && !artifactUrl.equals("null")) {
-					long size = getContentSize(artifactUrl);  // gets content's size from header
-					content.setContentSize(size);
-					contentArrayNode.add(content.asJson());
+				Content content = new Content(cId, aUrl);
+				content.setDownloadUrl(dUrl);
+				
+				String artifactUrl = !content.getArifactUrl().equals("null") ? content.getArifactUrl()
+						: content.getDownloadUrl();
+				// if artifactUrl present or downloadUrl is present, is use to get the size
+				try {
+					if (artifactUrl != null && !artifactUrl.isEmpty() && !artifactUrl.equals("null")) {
+						long size = getContentSize(artifactUrl);  // gets content's size from header
+						content.setContentSize(size);
+						contentArrayNode.add(content.asJson());
 
-				} else {
-					System.out.println(content.getContentId() + ": artifactUrl, downloadUrl both are empty, so size could not be updated ");
+					} else {
+						System.out.println(content.getContentId() + ": artifactUrl, downloadUrl both are empty, so size could not be updated ");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("Exception occured for Content-" + content.getContentId() + ": " + e.getMessage());
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Exception occured for Content-" + content.getContentId() + ": " + e.getMessage());
-			}
 
+			}
 		}
+
 	}
 
 	/**
@@ -187,14 +184,10 @@ public class Neo4jDBClient {
 	public void run(final int withLimit) throws Exception {
 		fetchContents(withLimit);
 		populateContents();
-    	System.out.println("Number of content's fetched to model, "+contentMap.size());
+    	System.out.println("Number of content's populate to model, "+contentArrayNode.size());
 
 	}
 
-	public Map<String, Content> getContentMap() {
-		return contentMap;
-	}
-	
 	/**
 	 * to get the content length/size from the header for the given url
 	 * @param artifactUrl
