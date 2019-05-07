@@ -119,6 +119,7 @@ public class Neo4jDBClient {
 											+ "SET n.size = $size " /* + "RETURN n.IL_UNIQUE_ID, n.size " */,
 									parameters("id", content.getValue().getContentId(), "size",
 											content.getValue().getContentSize()));
+							System.out.println("print resutt "+result);
 						}
 						return "";
 
