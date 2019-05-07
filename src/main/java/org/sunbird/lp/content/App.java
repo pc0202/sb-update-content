@@ -19,16 +19,15 @@ public class App {
 		} catch (Exception e) {
 			System.out.println("WARN: invalid commandline argument, default limit is 100!!");
 		}
-
-		// fetches 100 content which does not have size defined
-		dbclient.run(number);
 		
-		long starts = System.currentTimeMillis();
-		dbclient.updateBatchContentSize();
-		long ends = System.currentTimeMillis();
-		
-		System.out.println("time taken to process is "+ (ends-starts)/1000 +"s");
+		while(dbclient.run(number) > 0 ) {
+			long starts = System.currentTimeMillis();
+			dbclient.updateAllContentSize();
+			long ends = System.currentTimeMillis();
 			
+			System.out.println(number +" records update in time: "+ (ends-starts)/1000 +"s");
+		}
+
 		//process completed, closing connection 
 		dbclient.close();
 
