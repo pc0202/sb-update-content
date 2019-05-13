@@ -12,7 +12,7 @@ public class Content {
 	private String contentId;
 	private String arifactUrl;
 	private String downloadUrl;
-	private long contentSize;
+	private double contentSize;
 
 	public Content(String contentId, String artifactUrl) {
 		this.contentId = contentId;
@@ -64,11 +64,11 @@ public class Content {
 		this.downloadUrl = downloadUrl;
 	}
 
-	public long getContentSize() {
+	public double getContentSize() {
 		return contentSize;
 	}
 
-	public void setContentSize(long contentSize) {
+	public void setContentSize(double contentSize) {
 		this.contentSize = contentSize;
 	}
 

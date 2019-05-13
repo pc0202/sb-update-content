@@ -119,7 +119,7 @@ public class Neo4jDBClient {
 											+ "SET n.size = $size " /* + "RETURN n.IL_UNIQUE_ID, n.size " */,
 									parameters("id", content.getValue().getContentId(), "size",
 											content.getValue().getContentSize()));
-							System.out.println("print resutt "+result);
+							//System.out.println("print resutt "+result);
 						}
 						return "";
 
@@ -205,7 +205,7 @@ public class Neo4jDBClient {
 				// if artifactUrl present or downloadUrl is present, is use to get the size
 				try {
 					if (artifactUrl != null && !artifactUrl.isEmpty() && !artifactUrl.equals("null")) {
-						long size = getContentSize(artifactUrl); // gets content's size from header
+						double size = getContentSize(artifactUrl); // gets content's size from header
 						content.setContentSize(size);
 						contentArrayNode.add(content.asJson());
 						contentMap.put(cId, content);
@@ -214,6 +214,41 @@ public class Neo4jDBClient {
 						System.out.println(content.getContentId()
 								+ ": artifactUrl, downloadUrl both are empty, so size could not be updated ");
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out
+							.println("Exception occured for Content-" + content.getContentId() + ": " + e.getMessage());
+				}
+
+			}
+		}
+
+	}
+	
+	private void populateContentsSize() throws JsonGenerationException, JsonMappingException, IOException {
+		if (result != null) {
+			while (result.hasNext()) {
+				Record record = result.next();
+				String cId = record.get("contentId").asString();
+				String dUrl = record.get("downloadUrl").asString();
+				String aUrl = record.get("artifactUrl").asString();
+				float sizeStr = record.get("contentSize").asFloat();
+
+				Content content = new Content(cId, aUrl);
+				content.setDownloadUrl(dUrl);
+
+				try {
+					double size = new Double(sizeStr); // gets content's size from header
+					content.setContentSize(size);
+					contentArrayNode.add(content.asJson());
+					contentMap.put(cId, content);
+					/*
+					 * if (sizeStr . ) {
+					 * 
+					 * 
+					 * } else { System.out.println(content.getContentId() +
+					 * ": size empty, so size could not be updated "); }
+					 */
 				} catch (Exception e) {
 					e.printStackTrace();
 					System.out
@@ -256,11 +291,11 @@ public class Neo4jDBClient {
 	 * @throws IOException
 	 * @throws UnirestException
 	 */
-	public long getContentSize(String artifactUrl)
+	public double getContentSize(String artifactUrl)
 			throws JsonGenerationException, JsonMappingException, IOException, UnirestException {
 		HttpResponse<String> response = Unirest.head(artifactUrl).asString();
 		System.out.println(new ObjectMapper().writeValueAsString(response));
 		String contentLength = response.getHeaders().get("Content-Length").iterator().next();
-		return new Long(contentLength);
+		return new Double(contentLength);
 	}
 }
